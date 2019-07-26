@@ -21,8 +21,6 @@ resource "aws_subnet" "main" {
   vpc_id = aws_vpc.main.id
   # This cidr should be part of the network space of the VPC defined above.
   cidr_block = "10.0.1.0/24"
-  # Give public addresses to all instances lunched in this subnet
-  map_public_ip_on_launch = "true"
   # Self-explanatory
   availability_zone = "us-east-1a"
 
@@ -31,26 +29,24 @@ resource "aws_subnet" "main" {
   }
 }
 
-# This is going to edit the main route table for the vpc, when subnet is created it is going to inherit this route table. It is going containt the peering route as well afterwards.
-resource "aws_default_route_table" "default-table-testingvpc" {
-  default_route_table_id = "${aws_vpc.main.default_route_table_id}"
+resource "aws_route_table" "testing-vpc-route-table" {
+  # ID of the VPC to be created in.
+  vpc_id = aws_vpc.main.id
 
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.testing-vpc-gw.id
-  }
+  # Routes to OpenVPN VPC are going to be added to this table. The ID of this table is passed to vpc_peering module.
 
   tags = {
-    Name = "default table testing vpc"
+    Name = "testing-vpc-default-route-table"
+  }
+  # !!! Really important, Terraform should not try to restore the route table as it was, when it was created, more routes are going to be added by vpc_peering.
+  lifecycle {
+    ignore_changes = all
   }
 }
 
-# Internet gateway to provide connection with the outside world.
-resource "aws_internet_gateway" "testing-vpc-gw" {
-  # ID of the VPC to be created in, later it is going to be associated with routing table.
-  vpc_id = aws_vpc.main.id
-
-  tags = {
-    Name = "testing-igw"
-  }
+resource "aws_route_table_association" "testing-vpc-route-table-association" {
+  # Associating the testing-vpc-route-table with main subnet
+  # When you take a look at the main subnet, it is going to have two route table entries, one default inherited from VPC and this one.
+  subnet_id      = aws_subnet.main.id
+  route_table_id = aws_route_table.testing-vpc-route-table.id
 }

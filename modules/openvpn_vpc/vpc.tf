@@ -31,19 +31,33 @@ resource "aws_subnet" "openvpn-subnet" {
   }
 }
 
-# This is the main route table for the VPC, the peering route is going to be added to this route table.
-resource "aws_default_route_table" "default-table-openvpc" {
-  default_route_table_id = "${aws_vpc.openvpn-vpc.default_route_table_id}"
+resource "aws_route_table" "openvpn-vpc-route-table" {
+  # ID of the VPC to be created in.
+  vpc_id = aws_vpc.openvpn-vpc.id
 
   route {
+    # All traffic that is not part of the local network to be routed to openvpn-vpc-gw
     cidr_block = "0.0.0.0/0"
     gateway_id = aws_internet_gateway.openvpn-igw.id
   }
 
   tags = {
-    Name = "default table openvpn vpc"
+    Name = "testing-vpc-default-route-table"
+  }
+
+  # !!! Really important, Terraform should not try to restore the route table as it was, when it was created, more routes are going to be added by vpc_peering.
+  lifecycle {
+    ignore_changes = all
   }
 }
+
+resource "aws_route_table_association" "testing-vpc-route-table-association" {
+  # Associating the testing-vpc-route-table with main subnet
+  # When you take a look at the main subnet, it is going to have two route table entries, one default inherited from VPC and this one.
+  subnet_id      = aws_subnet.openvpn-subnet.id
+  route_table_id = aws_route_table.openvpn-vpc-route-table.id
+}
+
 
 # Internet gateway to provide connection with the outside world.
 resource "aws_internet_gateway" "openvpn-igw" {

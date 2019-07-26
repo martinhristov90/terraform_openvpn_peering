@@ -33,6 +33,8 @@ resource "null_resource" "vpn_setup" {
     user        = var.ec2_user
     private_key = var.private_key
   }
+  # The dafault route of the clients is not going to be changed, DNS requests are not going though the tunnel.
+  # User admin is going to be created, user openvpn is going to be deleted. Passwords for both users marti and admin are defined in vars.
 
   provisioner "remote-exec" {
     inline = [
@@ -40,18 +42,22 @@ resource "null_resource" "vpn_setup" {
       "sleep 4",
       "sudo /usr/local/openvpn_as/scripts/sacli -u marti -k type -v user_connect UserPropPut",
       "sudo /usr/local/openvpn_as/scripts/sacli -u marti --new_pass ${var.marti_pass} SetLocalPassword",
+      "sudo /usr/local/openvpn_as/scripts/sacli --user marti --key prop_autologin --value true UserPropPut",
       "sudo /usr/local/openvpn_as/scripts/sacli -k vpn.server.routing.private_network.1 -v 10.0.0.0/16 ConfigPut",
       "sudo /usr/local/openvpn_as/scripts/sacli -k vpn.server.routing.private_network.1 -v 10.0.1.0/24 ConfigPut",
       "sudo /usr/local/openvpn_as/scripts/sacli -u admin -k prop_superuser -v true UserPropPut",
       "sudo /usr/local/openvpn_as/scripts/sacli -u admin --new_pass ${var.admin_pass} SetLocalPassword",
       "sudo /usr/local/openvpn_as/scripts/sacli -k vpn.client.routing.reroute_gw -v false ConfigPut",
+      "sudo /usr/local/openvpn_as/scripts/sacli -k vpn.client.routing.reroute_dns -v false ConfigPut",
       "sudo /usr/local/openvpn_as/scripts/sacli -k host.name -v ${aws_eip.open-vpn-eip.public_dns} ConfigPut",
+      "sudo /usr/local/openvpn_as/scripts/sacli -u openvpn UserPropDelAll",
+      "sudo /usr/local/openvpn_as/scripts/sacli --user marti GetAutologin > /home/openvpnas/client.ovpn",
       "sleep 4",
       "sudo systemctl restart openvpnas",
       "sleep 2"
     ]
   }
-
   depends_on = ["aws_instance.openvpn-ec2", "aws_eip.open-vpn-eip"]
-
 }
+
+

@@ -5,25 +5,10 @@ resource "aws_instance" "web" {
   subnet_id = aws_subnet.main.id
   # What SGs to apply to this instance
   vpc_security_group_ids = [aws_security_group.ssh_http_allowed.id]
-  # ID of the key pair to be used to access this instance
+  # ID of the key pair to be used to access this instance, only accesible though OpenVPN
   key_name = aws_key_pair.deployer.id
   # Size of the instance
   instance_type = "t2.micro"
-  # This connection is needed to run remote-exec provisioner
-  connection {
-    type        = "ssh"
-    host        = aws_instance.web.public_ip
-    user        = var.ec2_user
-    private_key = var.private_key
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "sudo amazon-linux-extras enable nginx1.12",
-      "sudo apt-get -y install nginx",
-      "sudo systemctl start nginx",
-    ]
-  }
 
   tags = {
     Name = "HelloWorld_ec2"

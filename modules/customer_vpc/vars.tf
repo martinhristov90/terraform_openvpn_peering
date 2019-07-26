@@ -1,10 +1,19 @@
-variable "aws_region" {}
+variable "aws_region" {
+  description = "aws region for customer VPC"
+}
+variable "ami" {
+  description = "AMI to be used in customer VPC"
+}
 
-variable "ami" {}
+variable "ec2_user" {
+  description = "User to connect to the instance, not used currently"
+}
 
-variable "ec2_user" {}
+variable "private_key" {
+  description = "Private key to connect to the instance,  not used currently"
+}
 
-variable "private_key" {}
-
-variable "public_key" {}
+variable "public_key" {
+  description = "Public key used to create the aws key pair"
+}
 
