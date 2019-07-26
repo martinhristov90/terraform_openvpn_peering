@@ -27,7 +27,7 @@ module "customer_vpc" {
 module "vpc_peering" {
   source  = "grem11n/vpc-peering/aws"
   version = "2.1.0"
-  
+
   providers = {
     aws.this = "aws"
     aws.peer = "aws"
@@ -37,7 +37,7 @@ module "vpc_peering" {
   peer_vpc_id = module.customer_vpc.customer_vpc_id
 
   auto_accept_peering = true
-  
+
   tags = {
     Name        = "tf-single-account-single-region-${module.openvpn-vpc.public_ip}"
     Environment = "Test"

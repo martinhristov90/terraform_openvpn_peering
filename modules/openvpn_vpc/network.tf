@@ -57,6 +57,6 @@ resource "aws_security_group" "ssh_http_allowed" {
 resource "aws_eip" "open-vpn-eip" {
   vpc = true
 
-  instance                  = aws_instance.openvpn-ec2.id
-  depends_on                = ["aws_internet_gateway.openvpn-igw"]
+  instance   = aws_instance.openvpn-ec2.id
+  depends_on = ["aws_internet_gateway.openvpn-igw"]
 }

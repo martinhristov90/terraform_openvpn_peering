@@ -10,5 +10,5 @@ output "customer_vpc_id" {
 
 output "private_ip" {
   description = "Outputs the private IP of the EC2"
-  value = aws_instance.web.private_ip
+  value       = aws_instance.web.private_ip
 }
