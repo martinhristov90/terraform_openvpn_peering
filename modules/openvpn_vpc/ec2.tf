@@ -1,7 +1,7 @@
 resource "aws_instance" "openvpn-ec2" {
   # Run this particular Ubuntu AMI
   ami = var.ami[var.aws_region]
-  # Subnet ID this instance to be associated with
+  # Subnet ID this instance to be associated with, this subnet is going to have the routes inherited from default route table for the VPC.
   subnet_id = aws_subnet.openvpn-subnet.id
   # What SGs to apply to this instance
   vpc_security_group_ids = [aws_security_group.ssh_http_allowed.id]

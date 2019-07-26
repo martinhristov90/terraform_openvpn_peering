@@ -15,7 +15,7 @@ resource "aws_vpc" "openvpn-vpc" {
   }
 }
 
-# Main subnet to be used in the main VPC.
+# Main subnet to be used in the openvpn VPC. It is going to inherit its route tables from the main route table of the openvpn VPC
 resource "aws_subnet" "openvpn-subnet" {
   # ID of the VPC to associate the subnet with.
   vpc_id = aws_vpc.openvpn-vpc.id
@@ -28,6 +28,30 @@ resource "aws_subnet" "openvpn-subnet" {
 
   tags = {
     Name = "openvpn-vpc-subnet-1"
+  }
+}
+
+# This is the main route table for the VPC, the peering route is going to be added to this route table.
+resource "aws_default_route_table" "default-table-openvpc" {
+  default_route_table_id = "${aws_vpc.openvpn-vpc.default_route_table_id}"
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.openvpn-igw.id
+  }
+
+  tags = {
+    Name = "default table openvpn vpc"
+  }
+}
+
+# Internet gateway to provide connection with the outside world.
+resource "aws_internet_gateway" "openvpn-igw" {
+  # ID of the VPC to be created in, later it is going to be associated with routing table.
+  vpc_id = aws_vpc.openvpn-vpc.id
+
+  tags = {
+    Name = "openvpn-igw"
   }
 }
 
