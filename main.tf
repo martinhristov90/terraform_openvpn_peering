@@ -5,22 +5,27 @@
 module "openvpn-vpc" {
   source = "./modules/openvpn_vpc"
 
-  aws_region    = var.aws_region
-  ami           = var.ami
-  ec2_user      = var.ec2_user
-  private_key   = var.private_key
-  public_key    = var.public_key
-  ingress_ports = var.ingress_ports
-  admin_pass    = var.admin_pass
-  marti_pass    = var.marti_pass
+  aws_region    = var.openvpn_aws_region
+  ami           = var.openvpn_ami
+  ec2_user      = var.openvpn_ec2_user
+  private_key   = var.openvpn_private_key
+  public_key    = var.openvpn_public_key
+  ingress_ports = var.openvpn_ingress_ports
+  admin_pass    = var.openvpn_admin_pass
+  marti_pass    = var.openvpn_marti_pass
 
 }
 
 
-
-
 module "customer_vpc" {
   source = "./modules/customer_vpc"
+
+  aws_region  = var.customer_aws_region
+  ami         = var.customer_ami
+  ec2_user    = var.customer_ec2_user
+  private_key = var.customer_private_key
+  public_key  = var.customer_public_key
+
 }
 
 
@@ -39,7 +44,7 @@ module "vpc_peering" {
   auto_accept_peering = true
 
   tags = {
-    Name        = "tf-single-account-single-region-${module.openvpn-vpc.public_ip}"
+    Name        = "openvpn_testing_peering"
     Environment = "Test"
   }
 }

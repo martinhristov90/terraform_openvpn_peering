@@ -15,7 +15,7 @@ resource "aws_vpc" "main" {
   }
 }
 
-# Main subnet to be used in the main VPC.
+# Main subnet to be used in the main VPC. The peering route is going to be added to this route table.
 resource "aws_subnet" "main" {
   # ID of the VPC to associate the subnet with.
   vpc_id = aws_vpc.main.id
@@ -31,3 +31,26 @@ resource "aws_subnet" "main" {
   }
 }
 
+# This is going to edit the main route table for the vpc, when subnet is created it is going to inherit this route table. It is going containt the peering route as well afterwards.
+resource "aws_default_route_table" "default-table-testingvpc" {
+  default_route_table_id = "${aws_vpc.main.default_route_table_id}"
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.testing-vpc-gw.id
+  }
+
+  tags = {
+    Name = "default table testing vpc"
+  }
+}
+
+# Internet gateway to provide connection with the outside world.
+resource "aws_internet_gateway" "testing-vpc-gw" {
+  # ID of the VPC to be created in, later it is going to be associated with routing table.
+  vpc_id = aws_vpc.main.id
+
+  tags = {
+    Name = "testing-igw"
+  }
+}
