@@ -12,7 +12,7 @@ variable "ami" {
 variable "ec2_user" {
   default = "openvpnas"
 }
-
+# This key is now insecure, good for testing
 variable "private_key" {
   default = <<-EOF
 -----BEGIN OPENSSH PRIVATE KEY-----

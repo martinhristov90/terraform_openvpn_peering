@@ -27,7 +27,7 @@ resource "null_resource" "vpn_setup" {
     aws_instance_id = aws_instance.openvpn-ec2.id
   }
 
-    connection {
+  connection {
     type        = "ssh"
     host        = aws_eip.open-vpn-eip.public_dns
     user        = var.ec2_user
@@ -51,7 +51,7 @@ resource "null_resource" "vpn_setup" {
       "sleep 2"
     ]
   }
-  
+
   depends_on = ["aws_instance.openvpn-ec2", "aws_eip.open-vpn-eip"]
 
 }
