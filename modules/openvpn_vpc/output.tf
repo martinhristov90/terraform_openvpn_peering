@@ -1,6 +1,11 @@
-output "public_ip" {
+output "public_dns" {
   description = "Outputs the public IP of the created instance"
   value       = aws_eip.open-vpn-eip.public_dns
+}
+
+output "public_ip" {
+  description = "Outputs the public IP of the created instance"
+  value       = aws_eip.open-vpn-eip.public_ip
 }
 
 output "open_vpn_vpc_id" {
