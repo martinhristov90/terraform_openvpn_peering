@@ -50,10 +50,59 @@ module "vpc_peering" {
 
 
 resource "null_resource" "vpn_setup" {
-
+  # Copying the .ovpn file to connect to OpenVPN.
   provisioner "local-exec" {
-    command = "scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.ssh/aws_key_pair openvpnas@${module.openvpn-vpc.public_ip}:/home/openvpnas/client.ovpn ."
+    command = "scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.ssh/aws_key_pair openvpnas@${module.openvpn-vpc.public_dns}:/home/openvpnas/client.ovpn ."
   }
 
   depends_on = ["module.openvpn-vpc"]
+}
+
+module "acme_cert" {
+  # This module is used to set up TLS certificate for the web of the OpenVPN AS.
+  # This can run in paralell while creating other resources, creating certificates takes time.
+  source = "./modules/acme_module"
+}
+
+resource "null_resource" "cert_setup" {
+  # Sets up the certificate to OpenVPN AS
+  # Implemented this way for training purposes
+  connection {
+    type        = "ssh"
+    host        = module.openvpn-vpc.public_dns
+    user        = var.openvpn_ec2_user
+    private_key = var.openvpn_private_key
+  }
+
+  provisioner "file" {
+    source      = "${path.module}/certs/private_key.key"
+    destination = "/home/openvpnas/certs/server.key"
+  }
+
+  provisioner "file" {
+    source      = "${path.module}/certs/server.crt"
+    destination = "/home/openvpnas/certs/server.crt"
+  }
+
+  provisioner "file" {
+    source      = "${path.module}/certs/ca.crt"
+    destination = "/home/openvpnas/certs/ca.crt"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo cp /home/openvpnas/certs/server.key /usr/local/openvpn_as/etc/web-ssl/server.key",
+      "sudo cp /home/openvpnas/certs/server.crt /usr/local/openvpn_as/etc/web-ssl/server.crt",
+      "sudo cp /home/openvpnas/certs/ca.crt /usr/local/openvpn_as/etc/web-ssl/ca.crt",
+      "sudo systemctl restart openvpnas"
+    ]
+  }
+  depends_on = ["module.openvpn-vpc", "module.acme_cert"]
+}
+
+module "dns_module" {
+  source = "./modules/dns_module"
+
+  public_ip = module.openvpn-vpc.public_ip
+
 }

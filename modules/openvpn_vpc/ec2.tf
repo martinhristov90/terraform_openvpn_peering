@@ -53,6 +53,7 @@ resource "null_resource" "vpn_setup" {
       "sudo /usr/local/openvpn_as/scripts/sacli -u openvpn UserPropDelAll",
       "sudo /usr/local/openvpn_as/scripts/sacli --user marti GetAutologin > /home/openvpnas/client.ovpn",
       "sleep 4",
+      "mkdir -p /home/openvpnas/certs/",
       "sudo systemctl restart openvpnas",
       "sleep 2"
     ]
