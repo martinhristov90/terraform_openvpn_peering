@@ -4,7 +4,7 @@ resource "aws_instance" "openvpn-ec2" {
   # Subnet ID this instance to be associated with, this subnet is going to have the routes inherited from default route table for the VPC.
   subnet_id = aws_subnet.openvpn-subnet.id
   # What SGs to apply to this instance
-  vpc_security_group_ids = [aws_security_group.ssh_http_allowed.id]
+  vpc_security_group_ids = [aws_security_group.openvpn_sg.id]
   # ID of the key pair to be used to access this instance
   key_name = aws_key_pair.openvpn-keypair.id
   # Size of the instance
@@ -40,6 +40,7 @@ resource "null_resource" "vpn_setup" {
     inline = [
       "sudo ovpn-init --ec2 --batch --force",
       "sleep 4",
+      "sudo /usr/local/openvpn_as/scripts/sacli -k host.name -v marti.martinhristov.xyz ConfigPut",
       "sudo /usr/local/openvpn_as/scripts/sacli -u marti -k type -v user_connect UserPropPut",
       "sudo /usr/local/openvpn_as/scripts/sacli -u marti --new_pass ${var.marti_pass} SetLocalPassword",
       "sudo /usr/local/openvpn_as/scripts/sacli --user marti --key prop_autologin --value true UserPropPut",
@@ -49,13 +50,12 @@ resource "null_resource" "vpn_setup" {
       "sudo /usr/local/openvpn_as/scripts/sacli -u admin --new_pass ${var.admin_pass} SetLocalPassword",
       "sudo /usr/local/openvpn_as/scripts/sacli -k vpn.client.routing.reroute_gw -v false ConfigPut",
       "sudo /usr/local/openvpn_as/scripts/sacli -k vpn.client.routing.reroute_dns -v false ConfigPut",
-      "sudo /usr/local/openvpn_as/scripts/sacli -k host.name -v ${aws_eip.open-vpn-eip.public_dns} ConfigPut",
       "sudo /usr/local/openvpn_as/scripts/sacli -u openvpn UserPropDelAll",
-      "sudo /usr/local/openvpn_as/scripts/sacli --user marti GetAutologin > /home/openvpnas/client.ovpn",
       "sleep 4",
       "mkdir -p /home/openvpnas/certs/",
       "sudo systemctl restart openvpnas",
-      "sleep 2"
+      "sleep 2",
+      "sudo /usr/local/openvpn_as/scripts/sacli --user marti GetAutologin > /home/openvpnas/client.ovpn"
     ]
   }
   depends_on = ["aws_instance.openvpn-ec2", "aws_eip.open-vpn-eip"]

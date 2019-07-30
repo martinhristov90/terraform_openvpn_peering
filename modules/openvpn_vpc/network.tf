@@ -1,5 +1,5 @@
 
-resource "aws_security_group" "ssh_http_allowed" {
+resource "aws_security_group" "openvpn_sg" {
   # This security group is attached to the VPC and it is valid for all EC2 instances running inside it.
   # Deny is default policy.
   name        = "ssh_allowed"
