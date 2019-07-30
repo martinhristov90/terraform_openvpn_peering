@@ -1,9 +1,14 @@
 # The issuance of certificate by Lets Encrypt can be devided into two steps, first - register account, second - issueing certificate.
+locals {
+  server_url = var.use_prod == true ? var.server_type["prod"] : var.server_type["stage"]
+}
+
+
 provider "acme" {
   # Production endpoint for Let's Encrypt
   # There are two choices prod or stage, for making the issuence of the certificate work, stage can be used at first, when it works, switch to prod.
   # Certificates by stage server are not trusted by any browser.
-  server_url = var.use_prod == true ? var.server_type["prod"] : var.server_type["stage"]
+  server_url = local.server_url
 }
 
 resource "tls_private_key" "private_key" {
@@ -30,8 +35,7 @@ resource "acme_certificate" "certificate" {
 
 # Outputs the private key to project_root/certs/private_key.key
 resource "local_file" "private_key" {
-  sensitive_content = true # Not printing the content in outputs.
-  content           = "${acme_certificate.certificate.private_key_pem}"
+  sensitive_content = "${acme_certificate.certificate.private_key_pem}" # Not printing the content in outputs.
   filename          = "${path.module}/../../certs/private_key.key"
 }
 # Outputs the server's certificate (public key) to file named
