@@ -1,6 +1,6 @@
 # Networks
 # OpenVPN VPC network - 192.168.1.0/24
-# Customer VPC netwokr - 10.0.1.0/24
+# Customer VPC network - 10.0.1.0/24
 
 # This module creates the OpenVPN VPC
 module "openvpn-vpc" {
@@ -62,6 +62,10 @@ module "acme_cert" {
   # This module is used to set up TLS certificate for the web of the OpenVPN AS.
   # This can run in paralell while creating other resources, creating certificates takes time.
   source = "./modules/acme_module"
+
+  email_address = "forregistration@mail.bg"
+  use_prod      = false # Using staging server
+  common_name   = "*.martinhristov.xyz"
 }
 
 resource "null_resource" "cert_setup" {

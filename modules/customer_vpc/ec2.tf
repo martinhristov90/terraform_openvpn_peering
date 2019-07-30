@@ -1,5 +1,5 @@
 resource "aws_instance" "web" {
-  # Run this particular Ubuntu AMI
+  # Run this particular Ubuntu AMI with nginx, just for testing, can be anything else.
   ami = var.ami[var.aws_region]
   # Subnet ID this instance to be associated with
   subnet_id = aws_subnet.main.id
