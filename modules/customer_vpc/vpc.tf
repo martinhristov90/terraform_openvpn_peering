@@ -11,7 +11,7 @@ resource "aws_vpc" "main" {
   instance_tenancy = "default"
 
   tags = {
-    Name = "testing-vpc"
+    Name = "customer-vpc"
   }
 }
 
@@ -25,18 +25,17 @@ resource "aws_subnet" "main" {
   availability_zone = "us-east-1a"
 
   tags = {
-    Name = "testing-vpc-subnet-1"
+    Name = "customer-vpc-subnet-1"
   }
 }
 
-resource "aws_route_table" "testing-vpc-route-table" {
+resource "aws_route_table" "customer-vpc-route-table" {
   # ID of the VPC to be created in.
   vpc_id = aws_vpc.main.id
 
   # Routes to OpenVPN VPC are going to be added to this table. The ID of this table is passed to vpc_peering module.
-
   tags = {
-    Name = "testing-vpc-default-route-table"
+    Name = "customer-vpc-route-table"
   }
   # !!! Really important, Terraform should not try to restore the route table as it was, when it was created, more routes are going to be added by vpc_peering.
   lifecycle {
@@ -44,9 +43,9 @@ resource "aws_route_table" "testing-vpc-route-table" {
   }
 }
 
-resource "aws_route_table_association" "testing-vpc-route-table-association" {
-  # Associating the testing-vpc-route-table with main subnet
+resource "aws_route_table_association" "customer-vpc-route-table-association" {
+  # Associating the customer-vpc-route-table with main subnet
   # When you take a look at the main subnet, it is going to have two route table entries, one default inherited from VPC and this one.
   subnet_id      = aws_subnet.main.id
-  route_table_id = aws_route_table.testing-vpc-route-table.id
+  route_table_id = aws_route_table.customer-vpc-route-table.id
 }

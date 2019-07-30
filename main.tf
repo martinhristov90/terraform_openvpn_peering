@@ -21,7 +21,7 @@ module "openvpn-vpc" {
   marti_pass    = var.openvpn_marti_pass
 }
 
-# Used 
+# Used for generating customer's ec2 keys
 module "generate_keys_customer" {
   source   = "./modules/generate_keys"
   key_name = "customer"
@@ -49,11 +49,11 @@ module "vpc_peering" {
   this_vpc_id            = module.openvpn-vpc.open_vpn_vpc_id
   peer_vpc_id            = module.customer_vpc.customer_vpc_id
   openvpn_route_table_id = module.openvpn-vpc.openvpn_route_table_id
-  testing_route_table_id = module.customer_vpc.testing_route_table_id
+  testing_route_table_id = module.customer_vpc.customer_route_table_id
   auto_accept_peering    = true
 
   tags = {
-    Name = "openvpn_testing_peering"
+    Name = "openvpn_customer_peering"
   }
 }
 

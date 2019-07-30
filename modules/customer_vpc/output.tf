@@ -13,7 +13,7 @@ output "private_ip" {
   value       = aws_instance.web.private_ip
 }
 
-output "testing_route_table_id" {
+output "customer_route_table_id" {
   description = "Outputs the ID of the route table"
-  value       = aws_route_table.testing-vpc-route-table.id
+  value       = aws_route_table.customer-vpc-route-table.id
 }
