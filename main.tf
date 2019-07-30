@@ -1,31 +1,40 @@
 # Networks
 # OpenVPN VPC network - 192.168.1.0/24
-# Customer VPC netwokr - 10.0.1.0/24
+# Customer VPC network - 10.0.1.0/24
 
-# This module creates the OpenVPN VPC
+# Used for ec2 instance of OpenVPN AS
+module "generate_keys_openvpn" {
+  source   = "./modules/generate_keys"
+  key_name = "openvpn"
+}
+# This module creates the OpenVPN VPC and OpenVPN AS server
 module "openvpn-vpc" {
   source = "./modules/openvpn_vpc"
 
   aws_region    = var.openvpn_aws_region
   ami           = var.openvpn_ami
   ec2_user      = var.openvpn_ec2_user
-  private_key   = var.openvpn_private_key
-  public_key    = var.openvpn_public_key
+  private_key   = module.generate_keys_openvpn.private_key # Needed for provisioning.
+  public_key    = module.generate_keys_openvpn.public_key
   ingress_ports = var.openvpn_ingress_ports
   admin_pass    = var.openvpn_admin_pass
   marti_pass    = var.openvpn_marti_pass
+}
+
+# Used 
+module "generate_keys_customer" {
+  source   = "./modules/generate_keys"
+  key_name = "customer"
 }
 
 # This module is going to run instances that are only accesible though the OpenVPN VPC.
 module "customer_vpc" {
   source = "./modules/customer_vpc"
 
-  aws_region  = var.customer_aws_region
-  ami         = var.customer_ami
-  ec2_user    = var.customer_ec2_user
-  private_key = var.customer_private_key
-  public_key  = var.customer_public_key
-
+  aws_region = var.customer_aws_region
+  ami        = var.customer_ami
+  ec2_user   = var.customer_ec2_user
+  public_key = module.generate_keys_customer.public_key
 }
 
 
@@ -52,7 +61,9 @@ module "vpc_peering" {
 resource "null_resource" "vpn_setup" {
   # Copying the .ovpn file to connect to OpenVPN.
   provisioner "local-exec" {
-    command = "scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.ssh/aws_key_pair openvpnas@${module.openvpn-vpc.public_dns}:/home/openvpnas/client.ovpn ."
+    command = <<EOF
+    scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ./private_keys/openvpn_private.key openvpnas@${module.openvpn-vpc.public_dns}:/home/openvpnas/client.ovpn .
+    EOF
   }
 
   depends_on = ["module.openvpn-vpc"]
@@ -62,30 +73,41 @@ module "acme_cert" {
   # This module is used to set up TLS certificate for the web of the OpenVPN AS.
   # This can run in paralell while creating other resources, creating certificates takes time.
   source = "./modules/acme_module"
+
+  email_address = "forregistration@mail.bg"
+  use_prod = false # Using staging server
+  common_name = "*.martinhristov.xyz"
+}
+
+module "dns_module" {
+  source = "./modules/dns_module"
+
+  public_ip = module.openvpn-vpc.public_ip
+
 }
 
 resource "null_resource" "cert_setup" {
   # Sets up the certificate to OpenVPN AS
   # Implemented this way for training purposes
   connection {
-    type        = "ssh"
-    host        = module.openvpn-vpc.public_dns
-    user        = var.openvpn_ec2_user
-    private_key = var.openvpn_private_key
+    type = "ssh"
+    host = module.openvpn-vpc.public_dns
+    user = var.openvpn_ec2_user
+    private_key = module.generate_keys_openvpn.private_key
   }
 
   provisioner "file" {
-    source      = "${path.module}/certs/private_key.key"
+    source = "${path.module}/certs/private_key.key"
     destination = "/home/openvpnas/certs/server.key"
   }
 
   provisioner "file" {
-    source      = "${path.module}/certs/server.crt"
+    source = "${path.module}/certs/server.crt"
     destination = "/home/openvpnas/certs/server.crt"
   }
 
   provisioner "file" {
-    source      = "${path.module}/certs/ca.crt"
+    source = "${path.module}/certs/ca.crt"
     destination = "/home/openvpnas/certs/ca.crt"
   }
 
@@ -100,9 +122,3 @@ resource "null_resource" "cert_setup" {
   depends_on = ["module.openvpn-vpc", "module.acme_cert"]
 }
 
-module "dns_module" {
-  source = "./modules/dns_module"
-
-  public_ip = module.openvpn-vpc.public_ip
-
-}

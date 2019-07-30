@@ -2,7 +2,7 @@ output "openvpn_public_dns" {
   value = module.openvpn-vpc.public_dns
 }
 
-output "ec2_nginx_private_up" {
+output "ec2_nginx_private_ip" {
   value = module.customer_vpc.private_ip
 }
 

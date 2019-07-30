@@ -10,7 +10,7 @@ resource "aws_security_group" "ssh_http_allowed" {
     to_port   = 22
     protocol  = "tcp"
 
-    # Only clients of the OpenVPN can access this instance.
+    # Only clients of the OpenVPN can access this instance. Subnet of OpenVPN VPC (192.168.2.0/24)
     cidr_blocks = ["192.168.2.0/24"]
   }
 
@@ -19,7 +19,7 @@ resource "aws_security_group" "ssh_http_allowed" {
     to_port   = 80
     protocol  = "tcp"
 
-    # Only clients of the OpenVPN can access this instance.
+    # Only clients of the OpenVPN can access this instance. Subnet of OpenVPN VPC (192.168.2.0/24)
     cidr_blocks = ["192.168.2.0/24"]
   }
 
@@ -28,7 +28,7 @@ resource "aws_security_group" "ssh_http_allowed" {
     to_port   = 0
     protocol  = "-1"
 
-    # Only clients of the OpenVPN can access this instance.
+    # Only clients of the OpenVPN can access this instance. Subnet of OpenVPN VPC (192.168.2.0/24)
     cidr_blocks = ["192.168.2.0/24"]
   }
 }
