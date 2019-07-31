@@ -6,7 +6,7 @@ resource "aws_security_group" "ssh_http_allowed" {
   vpc_id      = aws_vpc.main.id
 
   dynamic "ingress" {
-    iterator = port
+    iterator = port # If ommited the name of the dynamic block should be used.
     for_each = var.ingress_ports
     content {
       from_port = port.value
