@@ -1,6 +1,6 @@
 # The issuance of certificate by Lets Encrypt can be devided into two steps, first - register account, second - issueing certificate.
 locals {
-  server_url = var.use_prod == true ? var.server_type["prod"] : var.server_type["stage"]
+  server_url = var.use_prod ? var.server_type["prod"] : var.server_type["stage"] # If true, prod if false, stage
 }
 
 

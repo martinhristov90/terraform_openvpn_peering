@@ -31,10 +31,11 @@ module "generate_keys_customer" {
 module "customer_vpc" {
   source = "./modules/customer_vpc"
 
-  aws_region = var.customer_aws_region
-  ami        = var.customer_ami
-  ec2_user   = var.customer_ec2_user
-  public_key = module.generate_keys_customer.public_key
+  aws_region    = var.customer_aws_region
+  ami           = var.customer_ami
+  ec2_user      = var.customer_ec2_user
+  public_key    = module.generate_keys_customer.public_key
+  ingress_ports = var.customer_ingress_ports
 }
 
 
@@ -66,7 +67,7 @@ resource "null_resource" "vpn_setup" {
     EOF
   }
 
-  depends_on = ["module.openvpn-vpc"]
+  depends_on = ["module.openvpn-vpc", "module.generate_keys_openvpn"]
 }
 
 module "acme_cert" {
@@ -119,6 +120,6 @@ resource "null_resource" "cert_setup" {
       "sudo systemctl restart openvpnas"
     ]
   }
-  depends_on = ["module.openvpn-vpc", "module.acme_cert"]
+  depends_on = ["module.acme_cert"]
 }
 

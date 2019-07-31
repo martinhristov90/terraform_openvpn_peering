@@ -5,22 +5,16 @@ resource "aws_security_group" "ssh_http_allowed" {
   description = "Allow SSH traffic and HTTP from OpenVPN VPC, no other traffic is allowed"
   vpc_id      = aws_vpc.main.id
 
-  ingress {
-    from_port = 22
-    to_port   = 22
-    protocol  = "tcp"
-
-    # Only clients of the OpenVPN can access this instance. Subnet of OpenVPN VPC (192.168.2.0/24)
-    cidr_blocks = ["192.168.2.0/24"]
-  }
-
-  ingress {
-    from_port = 80
-    to_port   = 80
-    protocol  = "tcp"
-
-    # Only clients of the OpenVPN can access this instance. Subnet of OpenVPN VPC (192.168.2.0/24)
-    cidr_blocks = ["192.168.2.0/24"]
+  dynamic "ingress" {
+    iterator = port # If ommited the name of the dynamic block should be used.
+    for_each = var.ingress_ports
+    content {
+      from_port = port.value
+      to_port   = port.value
+      protocol  = "tcp"
+      # Only clients of the OpenVPN can access this instance. Subnet of OpenVPN VPC (192.168.2.0/24)
+      cidr_blocks = ["192.168.2.0/24"]
+    }
   }
 
   egress {

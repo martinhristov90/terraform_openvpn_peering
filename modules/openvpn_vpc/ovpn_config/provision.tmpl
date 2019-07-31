@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+sudo ovpn-init --ec2 --batch --force
+sleep 4
+sudo /usr/local/openvpn_as/scripts/sacli -k host.name -v marti.martinhristov.xyz ConfigPut
+sudo /usr/local/openvpn_as/scripts/sacli -u marti -k type -v user_connect UserPropPut
+sudo /usr/local/openvpn_as/scripts/sacli -u marti --new_pass ${marti_pass} SetLocalPassword
+sudo /usr/local/openvpn_as/scripts/sacli --user marti --key prop_autologin --value true UserPropPut
+sudo /usr/local/openvpn_as/scripts/sacli -k vpn.server.routing.private_network.1 -v 10.0.0.0/16 ConfigPut
+sudo /usr/local/openvpn_as/scripts/sacli -k vpn.server.routing.private_network.1 -v 10.0.1.0/24 ConfigPut
+sudo /usr/local/openvpn_as/scripts/sacli -u admin -k prop_superuser -v true UserPropPut
+sudo /usr/local/openvpn_as/scripts/sacli -u admin --new_pass ${admin_pass} SetLocalPassword
+sudo /usr/local/openvpn_as/scripts/sacli -k vpn.client.routing.reroute_gw -v false ConfigPut
+sudo /usr/local/openvpn_as/scripts/sacli -k vpn.client.routing.reroute_dns -v false ConfigPut
+sudo /usr/local/openvpn_as/scripts/sacli -u openvpn UserPropDelAll
+mkdir -p /home/openvpnas/certs/
+chown -R openvpnas:openvpnas /home/openvpnas/certs/
+sudo systemctl restart openvpnas
+sleep 5
+sudo /usr/local/openvpn_as/scripts/sacli --user marti GetAutologin > /home/openvpnas/client.ovpn
+sleep 4

@@ -17,3 +17,8 @@ variable "public_key" {
   description = "Public key used to create the aws key pair"
 }
 
+variable "ingress_ports" {
+  description = "ingress ports for the security group ssh_http_allowed"
+}
+
+
