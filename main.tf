@@ -35,6 +35,7 @@ module "customer_vpc" {
   ami        = var.customer_ami
   ec2_user   = var.customer_ec2_user
   public_key = module.generate_keys_customer.public_key
+  ingress_ports = var.customer_ingress_ports
 }
 
 
