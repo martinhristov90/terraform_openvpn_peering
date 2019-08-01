@@ -9,3 +9,7 @@ output "ec2_nginx_private_ip" {
 output "openvpn_public_ip" {
   value = module.openvpn-vpc.public_ip
 }
+
+output "domain" {
+  value = "You should be able to reach the OpenVPN server at the domain name you provided"
+}

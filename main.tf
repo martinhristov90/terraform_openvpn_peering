@@ -84,6 +84,7 @@ module "dns_module" {
   source = "./modules/dns_module"
 
   public_ip = module.openvpn-vpc.public_ip
+  zone_name = var.zone_name
 
 }
 
