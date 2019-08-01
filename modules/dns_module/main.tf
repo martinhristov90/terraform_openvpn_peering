@@ -1,6 +1,6 @@
 # Getting the zone ID of martinhristov.xyz zone . 
 data "aws_route53_zone" "marti_zone" {
-  name = "martinhristov.xyz."
+  name = var.zone_name
 }
 
 # Putting an A record to reach OpenVPN server at marti.martinhristov.xyz
