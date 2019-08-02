@@ -9,6 +9,7 @@ The VPN part is implemented using OpenVPN AS server, it's web interface is set u
 
 - You need to own a domain name, in my case "martinhristov.xyz", for issuing Let's Encrypt certificate. Mine is registered with GoDaddy and the default name servers provided by them are changed to AWS Route 53 ones. The procedure for changing the NS server for GoDaddy registrar can be found [here](https://uk.godaddy.com/help/set-custom-nameservers-for-domains-registered-with-godaddy-12317),for other registrars, you can look it up in their documentation. One important thing to mention, keep in mind the propagation time for the new NS servers, it might take couple of hours from the moment you change them. One more thing to mention about NS servers, when you enter AWS NS into GoDaddy, do not use FQDN like `ns-844.awsdns-41.net.`(dot at the end), use `ns-844.awsdns-41.net`(no dot at the end).
 - Set up Route 53 hosted zone in AWS for your domain,instructions can be found [here](https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/migrate-dns-domain-in-use.html).
+
 #### How to use it:
 
 - In a directory of your choice, clone the github repository :
@@ -37,15 +38,18 @@ The VPN part is implemented using OpenVPN AS server, it's web interface is set u
 - After the creation finishes, you can find a file named `client.ovpn` in your project's root directory, this file has all necessary information to log in to the OpenVPN AS server, you can use OpenVPN client of your choice in my case i use [Tunnelblick](https://tunnelblick.net/index.html).
 
 - After you are connected to the OpenVPN AS server, you should be able to reach the Nginx server running in the private VPC, by using it's private IP address, the IP address is going to be outputed by Terraform after the creation of the resources finishes.
+
 #### Notes:
 
 - Consider changing variable `use_prod = false` to `true` as very last thing in the project, when everyting else is working. By default it is set to `false`, this way it uses the `staging` environment of Let's Encrypt, it does not issues certificates that are trusted by the browsers. `staging` environment is used for not hitting the limits of Let's Encrypt production server when re-running Terraform a number of times.
 - All `.tf` contain comments explaining in details the task being performed, go though all of them and review them.
 - Treat files in folders `private_keys` and `certs` as sensitive information as well as the `client.ovpn` file.
+
 #### Used sources:
 
 - This setup is inspired by article publish [here](https://dev.to/setevoy/openvpn-openvpn-access-server-set-up-and-aws-vpc-peering-configuration-5fpg).
 - Module used as basis for vpc_peering [here](https://registry.terraform.io/modules/grem11n/vpc-peering/aws/2.1.0).
+
 #### To DO:
 
 - [x] Add DNS record to use for accessing OpenVPN AS server
@@ -53,3 +57,4 @@ The VPN part is implemented using OpenVPN AS server, it's web interface is set u
 - [ ] Fine tuning of the OpenVPN
 - [x] Generating the pub and priv keys for the instances dynamically.
 - [ ] Refactor everything, needs to be less bulky.
+- [ ] Evaluate CloudFlare

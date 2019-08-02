@@ -60,7 +60,7 @@ variable "customer_ingress_ports" {
 
 variable "zone_name" {
   description = "The name of the hosted zone"
-  default = "martinhristov.xyz."
+  default     = "martinhristov.xyz."
 
 }
 

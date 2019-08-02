@@ -70,16 +70,6 @@ resource "null_resource" "vpn_setup" {
   depends_on = ["module.openvpn-vpc", "module.generate_keys_openvpn"]
 }
 
-module "acme_cert" {
-  # This module is used to set up TLS certificate for the web of the OpenVPN AS.
-  # This can run in paralell while creating other resources, creating certificates takes time.
-  source = "./modules/acme_module"
-
-  email_address = "forregistration@mail.bg"
-  use_prod = false # Using staging server
-  common_name = "*.martinhristov.xyz"
-}
-
 module "dns_module" {
   source = "./modules/dns_module"
 
@@ -88,28 +78,38 @@ module "dns_module" {
 
 }
 
+module "acme_cert" {
+  # This module is used to set up TLS certificate for the web of the OpenVPN AS.
+  # This can run in paralell while creating other resources, creating certificates takes time.
+  source = "./modules/acme_module"
+
+  email_address = "forregistration@mail.bg"
+  use_prod      = true                          # Using prod/staging server
+  common_name   = module.dns_module.record_name // This should be depended on DNS module, not wildcard, it is a workaround!!!
+}
+
 resource "null_resource" "cert_setup" {
   # Sets up the certificate to OpenVPN AS
   # Implemented this way for training purposes
   connection {
-    type = "ssh"
-    host = module.openvpn-vpc.public_dns
-    user = var.openvpn_ec2_user
+    type        = "ssh"
+    host        = module.openvpn-vpc.public_dns
+    user        = var.openvpn_ec2_user
     private_key = module.generate_keys_openvpn.private_key
   }
 
   provisioner "file" {
-    source = "${path.module}/certs/private_key.key"
+    source      = "${path.module}/certs/private_key.key"
     destination = "/home/openvpnas/certs/server.key"
   }
 
   provisioner "file" {
-    source = "${path.module}/certs/server.crt"
+    source      = "${path.module}/certs/server.crt"
     destination = "/home/openvpnas/certs/server.crt"
   }
 
   provisioner "file" {
-    source = "${path.module}/certs/ca.crt"
+    source      = "${path.module}/certs/ca.crt"
     destination = "/home/openvpnas/certs/ca.crt"
   }
 
@@ -118,6 +118,7 @@ resource "null_resource" "cert_setup" {
       "sudo cp /home/openvpnas/certs/server.key /usr/local/openvpn_as/etc/web-ssl/server.key",
       "sudo cp /home/openvpnas/certs/server.crt /usr/local/openvpn_as/etc/web-ssl/server.crt",
       "sudo cp /home/openvpnas/certs/ca.crt /usr/local/openvpn_as/etc/web-ssl/ca.crt",
+      "sudo rm /usr/local/openvpn_as/etc/web-ssl/ca.key",
       "sudo systemctl restart openvpnas"
     ]
   }
