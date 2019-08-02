@@ -8,7 +8,7 @@ resource "aws_route53_record" "openvpn_record" {
   zone_id = data.aws_route53_zone.marti_zone.zone_id
   name    = "marti.${data.aws_route53_zone.marti_zone.name}"
   type    = "A"
-  ttl     = "300"
+  ttl     = "60"
   records = ["${var.public_ip}"]
 }
 
